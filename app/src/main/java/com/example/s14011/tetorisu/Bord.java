@@ -19,7 +19,7 @@ import android.view.SurfaceView;
 public class Bord extends SurfaceView implements SurfaceHolder.Callback{
     public static final int FPS = 30;
     private SurfaceHolder holder;
-    private Thread thread;
+    private DrawThread thread;
     private Bitmap blocks;
     private Rect blockRect;
     private Rect[] blockRectArray = new Rect[8];
@@ -41,28 +41,6 @@ public class Bord extends SurfaceView implements SurfaceHolder.Callback{
         initialize(context);
     }
 
-    private void draw() {
-        Canvas canvas = holder.lockCanvas();
-        if (canvas == null) {
-            return;
-        }
-        int width = canvas.getWidth();
-        int height = canvas.getHeight();
-
-        canvas.drawColor(Color.BLACK);
-        float side = width / 10.0f;
-        Rect destRect = new RectF(0, 0, side, side);
-        Paint paint = new Paint();
-    }
-
-    private void initialize(Context context) {
-        getHolder().addCallback(this);
-        blocks = BitmapFactory.decodeResource(context.getResources())
-        int side = blocks.getWidth();
-        for (int i = 0; i < blockRectArray.length; i++) {
-            blockRectArray[i] = new Rect(0, i * side, side, (i + 1) * side);
-        }
-    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -74,11 +52,60 @@ public class Bord extends SurfaceView implements SurfaceHolder.Callback{
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
     }
+    @Override
+    public void surfaceDestroyed(final SurfaceHolder holder) {
+            stopThread();
+    }
 
+    public void draw(Canvas canvas) {
+        super.draw(canvas);
+        if (canvas == null) {
+            return;
+        }
+        int width = canvas.getWidth();
+        int height = canvas.getHeight();
 
+        canvas.drawColor(Color.BLACK);
+        float side = width / 10.0f;
+        RectF destRect = new RectF(0, 0, side, side);
+        Paint paint = new Paint();
+
+        canvas.drawBitmap(blocks, blockRectArray[0], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[1], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[2], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[3], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[4], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[5], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[6], destRect, paint);
+
+        destRect.offset(side, side);
+        canvas.drawBitmap(blocks, blockRectArray[7], destRect, paint);
+
+    }
+
+    private void initialize(Context context) {
+        getHolder().addCallback(this);
+        blocks = BitmapFactory.decodeResource(context.getResources(),R.drawable.block);
+        int side = blocks.getWidth();
+        for (int i = 0; i < blockRectArray.length; i++) {
+            blockRectArray[i] = new Rect(0, i * side, side, (i + 1) * side);
+        }
+    }
 
     private void startThread() {
-        startThread();
+        stopThread();
 
         thread = new DrawThread();
         thread.start();
@@ -87,6 +114,7 @@ public class Bord extends SurfaceView implements SurfaceHolder.Callback{
     private void stopThread() {
         if (thread != null) {
             thread.isFinished = true;
+            thread = null;
         }
     }
     private class DrawThread extends Thread {
@@ -101,7 +129,7 @@ public class Bord extends SurfaceView implements SurfaceHolder.Callback{
                     try {
                         sleep(1000 / FPS / 3);
                     }catch (InterruptedException e) {
-                        return;
+                        Log.w("DrawThread", e.getMessage(), e);
                     }
                     continue;
                 }
@@ -109,21 +137,16 @@ public class Bord extends SurfaceView implements SurfaceHolder.Callback{
                 try {
                     c = holder.lockCanvas(null);
                     synchronized (holder){
-                        draw();
+                        draw(c);
                     }
                 } finally {
-                    if (c != )
+                    if (c != null) {
+                        holder.unlockCanvasAndPost(c);
+                    }
                 }
-
-
-                draw();
                 prevTime = System.currentTimeMillis();
             }
         }
     }
-
-    @Override
-    public void surfaceDestroyed(final SurfaceHolder holder) {
-            stopThread();
-    }
 }
+
