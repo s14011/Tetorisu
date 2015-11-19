@@ -14,7 +14,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         >
-        <com.example.s14011.tetorisu.Bord
+        <com.example.s14011.tetorisu.Board
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
