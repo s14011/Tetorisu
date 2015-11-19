@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.text.BoringLayout;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +18,8 @@ import java.util.Random;
  * Created by s14011 on 15/11/12.
  */
 public class Tetromino {
+    private Board board;
+    private static final HashMap<Orientation, Orientation>  CLOCKWISE_ROTATIONS;
     private static Paint paint = new Paint();
     private Coordinate base;
     private Type type;
@@ -24,7 +27,17 @@ public class Tetromino {
     private Coordinate[] blockBoardCoordinates = Coordinate.asArray(0, 0, 0, 0, 0, 0, 0, 0);
     private RectF dst = new RectF();
 
-    public Tetromino() {
+    static {
+        CLOCKWISE_ROTATIONS = new HashMap<>();
+        CLOCKWISE_ROTATIONS.put(Orientation.Right, Orientation.Down);
+        CLOCKWISE_ROTATIONS.put(Orientation.Down, Orientation.Left);
+        CLOCKWISE_ROTATIONS.put(Orientation.Left, Orientation.Up);
+        CLOCKWISE_ROTATIONS.put(Orientation.Up, Orientation.Right);
+
+    }
+
+    public Tetromino(Board board) {
+        this.board = board;
         base = new Coordinate(0, 0);
         type = Type.nextType();
         orientation = Orientation.Right;
@@ -46,13 +59,63 @@ public class Tetromino {
         calcBlockBoardCoordinates();
     }
 
-    public void draw(Canvas canvas) {
-        float side = canvas.getWidth() / 10.0f;
+    public void move(Orientation orientation) {
+        switch (orientation) {
+            case Up:
+                base.y +=1;
+                break;
+            case Down:
+                base.y -=1;
+                break;
+            case Right:
+                base.x +=1;
+                break;
+            case Left:
+                base.x -=1;
+                break;
+        }
+        calcBlockBoardCoordinates();
+    }
 
+    public void rotate() {
+        rotate(false);
+    }
+
+    public void rotate(boolean isCCW) {
+        orientation = CLOCKWISE_ROTATIONS.get(orientation);
+        if (isCCW) {
+            orientation = CLOCKWISE_ROTATIONS.get(orientation);
+            orientation = CLOCKWISE_ROTATIONS.get(orientation);
+
+        }
+    }
+
+    public void draw(Canvas canvas) {
         for (Coordinate point : blockBoardCoordinates) {
-            dst.set(point.x, (20 - point.y), point.x + side, (20 - point.y - side));
+            board.translateCanvasCoordnate(canvas, dst, point.x , point.y );
             canvas.drawBitmap(Type.blockBitmap, type.getRect(), dst, paint);
         }
+    }
+
+    public boolean intersect(Tetromino target) {
+        for (Coordinate blockCoordinate: blockBoardCoordinates) {
+            for (Coordinate targetBlockCoordinate: target.blockBoardCoordinates) {
+                if (blockCoordinate.x == targetBlockCoordinate.x && blockCoordinate.y == targetBlockCoordinate.y) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isOutOfBounds() {
+        for (Coordinate blockCoordinate: blockBoardCoordinates) {
+            if (blockCoordinate.x < 0 || blockCoordinate.x >= 20
+                    || blockCoordinate.y <= 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public enum Orientation {
@@ -74,52 +137,52 @@ public class Tetromino {
             HashMap<Orientation, Coordinate[]> coordinates;
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(0, 1, 1, 1, 2, 1, 3, 1));
-            coordinates.put(Orientation.Down, Coordinate.asArray(1, 0, 1, 1, 1, 2, 1, 3));
-            coordinates.put(Orientation.Left, Coordinate.asArray(0, 2, 1, 2, 2, 2, 3, 2));
-            coordinates.put(Orientation.Up, Coordinate.asArray(2, 0, 2, 1, 2, 2, 2, 3));
+            coordinates.put(Orientation.Right, Coordinate.asArray(-1, 0, 0, 0, 1, 0, 2, 0));
+            coordinates.put(Orientation.Down, Coordinate.asArray(0, -1, 0, 0, 0, 1, 0, 2));
+            coordinates.put(Orientation.Left, Coordinate.asArray(-1, 0, 0, 0, 1, 0, 2, 0));
+            coordinates.put(Orientation.Up, Coordinate.asArray(0, -1, 0, 0, 0, 1, 0, 2));
             LOCAL_BLOCK_COORDINATES.put(I, coordinates);
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(0, 0, 0, 1, 1, 0, 1, 1));
-            coordinates.put(Orientation.Down, Coordinate.asArray(0, 0, 0, 1, 1, 0, 1, 1));
-            coordinates.put(Orientation.Left, Coordinate.asArray(0, 0, 0, 1, 1, 0, 1, 1));
-            coordinates.put(Orientation.Up, Coordinate.asArray(0, 0, 0, 1, 1, 0, 1, 1));
+            coordinates.put(Orientation.Right, Coordinate.asArray(-1, -1, -1, 0, 0, -1, 0, 0));
+            coordinates.put(Orientation.Down, Coordinate.asArray(-1, -1, -1, 0, 0, -1, 0, 0));
+            coordinates.put(Orientation.Left, Coordinate.asArray(-1, -1, -1, 0, 0, -1, 0, 0));
+            coordinates.put(Orientation.Up, Coordinate.asArray(-1, -1, -1, 0, 0, -1, 0, 0));
             LOCAL_BLOCK_COORDINATES.put(O, coordinates);
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(1, 0, 1, 1, 2, 1, 2, 2));
-            coordinates.put(Orientation.Down, Coordinate.asArray(2, 0, 1, 0, 1, 1, 0, 1));
-            coordinates.put(Orientation.Left, Coordinate.asArray(1, 0, 1, 1, 2, 1, 2, 2));
-            coordinates.put(Orientation.Up, Coordinate.asArray(2, 0, 1, 0, 1, 1, 0, 1));
+            coordinates.put(Orientation.Right, Coordinate.asArray(0, -1, 0, 0, 1, 0, 1, 1));
+            coordinates.put(Orientation.Down, Coordinate.asArray(1, -1, 0, -1, 0, 0, -1, 0));
+            coordinates.put(Orientation.Left, Coordinate.asArray(0, -1, 0, 0, 1, 0, 1, 1));
+            coordinates.put(Orientation.Up, Coordinate.asArray(1, -1, 0, -1, 0, 0, -1, 0));
             LOCAL_BLOCK_COORDINATES.put(S, coordinates);
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(2, 0, 2, 1, 1, 1, 1, 2));
-            coordinates.put(Orientation.Down, Coordinate.asArray(2, 2, 1, 2, 1, 1, 0, 1));
-            coordinates.put(Orientation.Left, Coordinate.asArray(2, 0, 2, 1, 1, 1, 1, 2));
-            coordinates.put(Orientation.Up, Coordinate.asArray(2, 2, 1, 2, 1, 1, 0, 1));
+            coordinates.put(Orientation.Right, Coordinate.asArray(1, -1, 1, 0, 0, 0, 0, 1));
+            coordinates.put(Orientation.Down, Coordinate.asArray(1, 1, 0, 1, 0, 0, -1, 0));
+            coordinates.put(Orientation.Left, Coordinate.asArray(1, -1, 1, 0, 0, 0, 0, 1));
+            coordinates.put(Orientation.Up, Coordinate.asArray(1, 1, 0, 1, 0, 0, -1, 0));
             LOCAL_BLOCK_COORDINATES.put(Z, coordinates);
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(2, 0, 1, 0, 1, 1, 1, 2));
-            coordinates.put(Orientation.Down, Coordinate.asArray(2, 2, 2, 1, 1, 1, 0, 1));
-            coordinates.put(Orientation.Left, Coordinate.asArray(1, 0, 1, 1, 1, 2, 0, 2));
-            coordinates.put(Orientation.Up, Coordinate.asArray(0, 0, 0, 1, 1, 1, 2, 1));
+            coordinates.put(Orientation.Right, Coordinate.asArray(1, -1, 0, -1, 0, 0, 0, 1));
+            coordinates.put(Orientation.Down, Coordinate.asArray(1, 1, 1, 0, 0, 0, -1, 0));
+            coordinates.put(Orientation.Left, Coordinate.asArray(0, -1, 0, 0, 0, 1, -1, 1));
+            coordinates.put(Orientation.Up, Coordinate.asArray(-1, -1, -1, 0, 0, 0, 1, 0));
             LOCAL_BLOCK_COORDINATES.put(J, coordinates);
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(0, 0, 1, 0, 1, 1, 1, 2));
-            coordinates.put(Orientation.Down, Coordinate.asArray(2, 0, 2, 1, 1, 1, 0, 1));
-            coordinates.put(Orientation.Left, Coordinate.asArray(1, 0, 1, 1, 1, 2, 2, 2));
-            coordinates.put(Orientation.Up, Coordinate.asArray(2, 1, 1, 1, 0, 1, 0, 2));
+            coordinates.put(Orientation.Right, Coordinate.asArray(-1, -1, 0, -1, 0, 0, 0, 1));
+            coordinates.put(Orientation.Down, Coordinate.asArray(1, -1, 1, 0, 0, 0, -1, 0));
+            coordinates.put(Orientation.Left, Coordinate.asArray(0, -1, 0, 0, 0, 1, 1, 1));
+            coordinates.put(Orientation.Up, Coordinate.asArray(1, 0, 0, 0, -1, 0, -1, 1));
             LOCAL_BLOCK_COORDINATES.put(L, coordinates);
 
             coordinates = new HashMap<>();
-            coordinates.put(Orientation.Right, Coordinate.asArray(2, 1, 1, 1, 0, 1, 1, 2));
-            coordinates.put(Orientation.Down, Coordinate.asArray(1, 0, 1, 1, 1, 2, 0, 1));
-            coordinates.put(Orientation.Left, Coordinate.asArray(2, 1, 1, 1, 0, 1, 1, 0));
-            coordinates.put(Orientation.Up, Coordinate.asArray(1, 0, 1, 1, 1, 2, 2, 1));
+            coordinates.put(Orientation.Right, Coordinate.asArray(1, 0, 0, 0, -1, 0, 0, 1));
+            coordinates.put(Orientation.Down, Coordinate.asArray(0, -1, 0, 0, 0, 1, -1, 0));
+            coordinates.put(Orientation.Left, Coordinate.asArray(1, 0, 0, 0, -1, 0, 0, -1));
+            coordinates.put(Orientation.Up, Coordinate.asArray(0, -1, 0, 0, 0, 1, 1, 0));
             LOCAL_BLOCK_COORDINATES.put(T, coordinates);
         }
 
