@@ -50,9 +50,9 @@ public class Board extends SurfaceView implements SurfaceHolder.Callback{
     }
 
     public boolean fallTetromino() {
-        fallingTetromino.move(Tetromino.Orientation.Down);
-        if (isValidPosition()) {
-            fallingTetromino.move(Tetromino.Orientation.Up);
+        fallingTetromino.move(Input.Down);
+        if (!isValidPosition()) {
+            fallingTetromino.move(Input.Up);
             return false;
         }
         return true;
@@ -108,6 +108,11 @@ public class Board extends SurfaceView implements SurfaceHolder.Callback{
             tetromino.draw(canvas);
         }
         fallingTetromino.draw(canvas);
+    }
+
+    public void send(Input input) {
+        fallingTetromino.move(input);
+
     }
 
     private void updateGame() {

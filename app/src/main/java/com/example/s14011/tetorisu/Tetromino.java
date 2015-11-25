@@ -59,8 +59,8 @@ public class Tetromino {
         calcBlockBoardCoordinates();
     }
 
-    public void move(Orientation orientation) {
-        switch (orientation) {
+    public void move(Input input) {
+        switch (input) {
             case Up:
                 base.y +=1;
                 break;
@@ -73,8 +73,32 @@ public class Tetromino {
             case Left:
                 base.x -=1;
                 break;
+            case Rotate:
+                rotate(true);
+                break;
         }
         calcBlockBoardCoordinates();
+    }
+
+    public void undo(Input input) {
+        switch (input) {
+            case Up:
+                base.y +=1;
+                break;
+            case Down:
+                base.y -=1;
+                break;
+            case Right:
+                base.x +=1;
+                break;
+            case Left:
+                base.x -=1;
+                break;
+            case Rotate:
+                rotate(true);
+                break;
+
+        }
     }
 
     public void rotate() {
