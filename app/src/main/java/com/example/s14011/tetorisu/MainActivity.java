@@ -3,6 +3,7 @@ package com.example.s14011.tetorisu;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -14,12 +15,17 @@ import android.os.Handler;
 public class MainActivity extends AppCompatActivity implements Board.Callback {
     private Board board;
     private Handler handler;
+    private MediaPlayer mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         handler = new Handler();
         setContentView(R.layout.activity_main);
+
+        mp = MediaPlayer.create(this, R.raw.tw076);
+        mp.setLooping(true);
+        mp.start();
 
         Bitmap srcImage = BitmapFactory.decodeResource(getResources(),
                 android.R.drawable.ic_media_play);

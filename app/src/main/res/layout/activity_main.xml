@@ -14,7 +14,7 @@
         android:layout_alignParentTop="true"
         android:background="#ccc">
 
-        <com.example.s14011.tetorisu.board
+        <com.example.s14011.tetorisu.Board
             android:id="@+id/board"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -83,6 +83,8 @@
             android:onClick="gameButtonClick"
             android:scaleType="fitCenter"
             android:src="@android:drawable/ic_menu_rotate" />
+
+
     </LinearLayout>
 
 </RelativeLayout>

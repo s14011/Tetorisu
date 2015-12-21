@@ -192,6 +192,9 @@ public class Board extends SurfaceView implements SurfaceHolder.Callback{
         void scoreAdd(int score);
     }
 
+
+
+
     private class DrawThread extends Thread {
         private boolean isFinished;
 
